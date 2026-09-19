@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partygoer Request Device</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-animation">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <div class="container">
+        <h1>📱 Party Request Portal</h1>
+        
+        <div class="input-group">
+            <span class="input-label">Your Name</span>
+            <input type="text" id="usernameInput" placeholder="Your Name (optional)">
+        </div>
+        
+        <div class="input-group">
+            <span class="input-label">Song Request</span>
+            <input type="text" id="messageInput" placeholder="Type something fun...">
+        </div>
+        
+        <button onclick="sendMessage()">Send to Host</button>
+        
+        <p id="status" class="status-text" style="color: #ffca28;">Status: Connecting...</p>
+    </div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const ws = new WebSocket("ws://192.168.68.87:8000/ws/guest");
+
+    ws.onopen = () => {
+        const statusEl = document.getElementById("status");
+        if (statusEl) {
+            statusEl.innerText = "Status: Connected to Party Network!";
+            statusEl.style.color = "#00e676";
+        }
+    };
+
+    ws.onclose = () => {
+        const statusEl = document.getElementById("status");
+        if (statusEl) {
+            statusEl.innerText = "Status: Disconnected from Party.";
+            statusEl.style.color = "#ff1744";
+        }
+    };
+
+    ws.onerror = () => {
+        const statusEl = document.getElementById("status");
+        if (statusEl) {
+            statusEl.innerText = "Status: Connection Error";
+            statusEl.style.color = "#ff1744";
+        }
+    };
+
+    window.sendMessage = function () {
+        const username = document.getElementById("usernameInput").value || "Anonymous";
+        const message = document.getElementById("messageInput").value.trim();
+
+        if (!message) return;
+        if (ws.readyState !== WebSocket.OPEN) return;
+
+        ws.send(JSON.stringify({
+            type: "request_song",
+            song: message,
+            username: username
+        }));
+
+        document.getElementById("messageInput").value = "";
+    };
+});
+</script>
+
+</body>
+</html>

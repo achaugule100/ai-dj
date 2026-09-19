@@ -1,0 +1,377 @@
+/* frontend/styles.css */
+
+/* ==========================================
+   GLOBAL RESET & STREAMLIT FONTS
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #0e1117; 
+    color: #fafafa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    padding: 2rem;
+}
+
+/* ==========================================
+   DYNAMIC BOKEH BACKGROUND
+   ========================================== */
+.bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1;
+    background-color: #0e1117;
+}
+
+.bg-animation div {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(140px); 
+    opacity: 0.55;       
+}
+
+.bg-animation div:nth-child(1) {
+    height: 90%; width: 85%; background: #ff00d9; left: -20%; top: -20%;
+    animation: speedFarMove1 5s infinite ease-in-out;
+}
+.bg-animation div:nth-child(2) {
+    height: 85%; width: 75%; background: #00ffb7; right: -15%; top: -10%;
+    animation: speedFarMove2 6s infinite ease-in-out; animation-delay: -1.5s;
+}
+.bg-animation div:nth-child(3) {
+    height: 70%; width: 80%; background: #1eff00; left: -10%; bottom: -20%;
+    animation: speedFarMove3 4.5s infinite ease-in-out; animation-delay: -0.8s;
+}
+.bg-animation div:nth-child(4) {
+    height: 80%; width: 70%; background: #ffe600; right: -10%; bottom: -15%;
+    animation: speedFarMove4 7s infinite ease-in-out; animation-delay: -2.2s;
+}
+.bg-animation div:nth-child(5) {
+    height: 60%; width: 60%; background: #ff0000; left: 25%; top: 20%;
+    animation: speedFarMove5 5.5s infinite ease-in-out; animation-delay: -3s;
+}
+
+@keyframes speedFarMove1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(300px, 200px) scale(1.4); } }
+@keyframes speedFarMove2 { 0%, 100% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(-350px, 250px) scale(0.7); } }
+@keyframes speedFarMove3 { 0%, 100% { transform: translate(0, 0) scale(0.8); } 50% { transform: translate(250px, -300px) scale(1.5); } }
+@keyframes speedFarMove4 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-300px, -200px) scale(1.3); } }
+@keyframes speedFarMove5 { 0%, 100% { transform: translate(0, 0) scale(1.3); } 50% { transform: translate(200px, 300px) scale(0.6); } }
+
+/* ==========================================
+   LAYOUT ARCHITECTURE (SPLIT VIEWPORTS)
+   ========================================== */
+.dashboard-wrapper {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    height: 85vh;
+    min-height: 550px;
+    align-items: stretch;
+}
+
+.container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 460px; 
+    background: rgba(22, 24, 30, 0.88); 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 2.2rem;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+}
+
+.qr-panel {
+    flex: 45%;
+    max-width: none; 
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+}
+
+.feed-panel {
+    flex: 55%;
+    max-width: none; 
+}
+
+/* Typography elements */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    border-bottom: 2px solid #ff4b4b; 
+    padding-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fffb00; 
+    letter-spacing: 1px;
+}
+
+.qr-sublabel {
+    font-size: 0.9rem;
+    color: rgba(250, 250, 250, 0.6);
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: rgba(250, 250, 250, 0.7);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ==========================================
+   HIGH TECH QR DISPLAY CANVAS
+   ========================================== */
+.qr-placeholder {
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1 / 1;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-inner-target {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #121617; 
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 4px solid #ff007f;
+}
+.top-left { top: -6px; left: -6px; border-right: none; border-bottom: none; }
+.top-right { top: -6px; right: -6px; border-left: none; border-bottom: none; }
+.bottom-left { bottom: -6px; left: -6px; border-right: none; border-top: none; }
+.bottom-right { bottom: -6px; right: -6px; border-left: none; border-top: none; }
+
+.wifi-instructions {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    border-radius: 0.4rem;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================
+   INPUTS, STATUS & SCROLLABLE LOG 
+   ========================================== */
+.input-group { margin-bottom: 1.2rem; width: 100%; text-align: left; }
+.input-label { display: block; font-size: 0.85rem; color: rgba(250, 250, 250, 0.65); margin-bottom: 0.4rem; font-weight: 500; }
+
+input[type="text"] {
+    width: 100%; padding: 0.65rem 0.85rem; background-color: #31333f;
+    border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.25rem; color: #ffffff;
+    font-size: 0.95rem; transition: border-color 0.2s;
+}
+input[type="text"]:focus { outline: none; border-color: #ff4b4b; }
+
+button {
+    width: 100%; padding: 0.65rem 1rem; background-color: transparent; color: #ff4b4b;
+    border: 1px solid #ff4b4b; border-radius: 0.25rem; font-weight: 600; cursor: pointer;
+    font-size: 0.95rem; transition: all 0.2s; margin-top: 0.4rem;
+}
+button:hover { background-color: #ff4b4b; color: #ffffff; box-shadow: 0 0 15px rgba(255, 75, 75, 0.35); }
+
+.status-text {
+    font-weight: 600; font-size: 0.85rem; text-align: center; width: 100%;
+    background: rgba(0, 0, 0, 0.35); padding: 0.5rem; border-radius: 0.25rem; margin-top: 10px;
+}
+
+#messageLog {
+    list-style: none;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+#messageLog::-webkit-scrollbar { width: 4px; }
+#messageLog::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; }
+
+.chat-bubble {
+    background: rgba(38,39,48,0.95);
+    border-left: 4px solid #00ffff;
+
+    padding: 1rem;
+    border-radius: 10px;
+
+    margin-bottom: 12px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+
+    transition: transform 0.15s ease;
+}
+
+.chat-bubble:hover {
+    transform: translateY(-2px);
+}
+
+.bubble-sender {
+    color: #00ffff;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.bubble-msg {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+.bubble-msg { color: #fafafa; font-size: 0.95rem; line-height: 1.4; word-break: break-word; text-align: left; }
+.bubble-id { display: block; font-size: 0.7rem; color: rgba(250, 250, 250, 0.25); text-align: right; }
+
+/* Responsive break for mobile screens */
+@media (max-width: 850px) {
+    .dashboard-wrapper { flex-direction: column; height: auto; overflow-y: auto; }
+    body { overflow-y: auto; }
+    .qr-placeholder { max-width: 240px; }
+}
+
+/* ==========================================
+   DJ CONTROL PANEL
+   ========================================== */
+.dj-panel {
+    flex: 35%;
+    max-width: none;
+}
+
+.dj-panel-title {
+    color: rgba(250,250,250,0.75);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.current-song-card {
+    background: #262730;
+    border-left: 4px solid #00ffff;
+    border-radius: 0.3rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.now-playing {
+    background: rgba(255,255,255,0.04);
+    border-radius: 0.4rem;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.now-playing-label {
+    font-size: 0.75rem;
+    color: rgba(250,250,250,0.45);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.now-playing-song {
+    margin-top: 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.dj-button-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.dj-btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+.dj-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.player-status {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    text-align: center;
+    color: rgba(250,250,250,0.75);
+}
+
+.dj-controls button {
+    flex: 1;
+    margin-top: 0;
+}
+
+.play-btn {
+    color: #00e676;
+    border-color: #00e676;
+}
+
+.play-btn:hover {
+    background: #00e676;
+    color: #000;
+}
+
+.pause-btn {
+    color: #ffca28;
+    border-color: #ffca28;
+}
+
+.pause-btn:hover {
+    background: #ffca28;
+    color: #000;
+}
+
+.next-btn {
+    color: #00ffff;
+    border-color: #00ffff;
+}
+
+.next-btn:hover {
+    background: #00ffff;
+    color: #000;
+}

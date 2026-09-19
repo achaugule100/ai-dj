@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-animation">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <div class="dashboard-wrapper">
+        
+        <div class="container qr-panel">
+            <h2>SCAN TO REQUEST A SONG</h2>
+            <p class="qr-sublabel">
+                Join the party network and request your favorite songs!!!
+            </p>
+            
+            <div class="qr-placeholder">
+                <div class="qr-inner-target">
+                    <div class="qr-corner top-left"></div>
+                    <div class="qr-corner top-right"></div>
+                    <div class="qr-corner bottom-left"></div>
+                    <div class="qr-corner bottom-right"></div>
+
+                    <img
+                        src="qrcode.png"
+                        alt="QR Code"
+                        style="width: 90%; height: 90%; object-fit: contain;"
+                    >
+                </div>
+            </div>
+            
+            <div class="wifi-instructions">
+                <span>IP: <strong>192.168.68.87</strong></span>
+            </div>
+        </div>
+
+        <div class="container feed-panel">
+            <h1>Current Song Requests!!</h1>
+
+            <p id="status"
+               class="status-text"
+               style="color: #ffbf00;">
+               Status: Offline
+            </p>
+            
+            <h3>Recent Requests</h3>
+
+            <ul id="messageLog"></ul>
+        </div>
+
+        <!-- NEW DJ PANEL -->
+
+        <div class="container dj-panel">
+
+            <h1>🎧 DJ Controls</h1>
+
+            <p class="current-song-label">
+                Current Song
+            </p>
+
+            <div class="current-song-card">
+                No Song Loaded
+            </div>
+
+            <div class="dj-button-group">
+
+                <button id="playBtn" class="dj-btn">
+                    ▶ Play
+                </button>
+
+                <button id="pauseBtn" class="dj-btn">
+                    ⏸ Pause
+                </button>
+
+                <button id="nextBtn" class="dj-btn">
+                    ⏭ Next
+                </button>
+
+            </div>
+
+            <div class="player-status">
+                <p id="playerStatus" class="status-text" style="color: #ffbf00;">
+                    Control Song Playback Here!
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+<script>
+
+let ws;
+
+fetch("http://192.168.68.87:8000/config")
+  .then(res => res.json())
+  .then(cfg => {
+
+      const wsUrl = `ws://${cfg.ip}:${cfg.port}/ws/host`;
+
+      //ws = new WebSocket("ws://192.168.68.87:8000/ws/host");
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+          console.log("connected");
+
+          document.getElementById("status").innerText =
+              "Status: Live & Listening";
+
+          document.getElementById("status").style.color =
+              "#00e676";
+      };
+
+      ws.onclose = () => {
+          document.getElementById("status").innerText =
+              "Status: Offline";
+
+          document.getElementById("status").style.color =
+              "#ff1744";
+      };
+
+      ws.onerror = (event) => {
+        console.log("WebSocket error:", event);
+        document.getElementById("status").innerText = "Status: Connection Error";
+        document.getElementById("status").style.color = "#ff1744";
+        };
+
+    ws.onmessage = (event) => {
+
+    const data = JSON.parse(event.data);
+
+    if (data.type === "invalid_request") {
+        console.log("Rejected request:", data.song);
+        return;
+    }
+    // SONG REQUEST
+    if (data.type === "song_request") {
+
+        const log = document.getElementById("messageLog");
+
+        const bubble = document.createElement("li");
+        bubble.className = "chat-bubble";
+
+        bubble.innerHTML = `
+            <div class="bubble-sender">🎵 New Song Request</div>
+            <div class="bubble-msg">${data.song}</div>
+        `;
+
+        bubble.dataset.song = data.song;
+        log.prepend(bubble);
+        return;
+    }
+
+    // STATUS UPDATE
+    if (data.type === "status") {
+
+        document.querySelector(".current-song-card").innerText =
+            data.currentSong;
+
+        return;
+    }
+
+    if (data.type === "song_finished") {
+
+        const items = document.querySelectorAll(".chat-bubble");
+
+        items.forEach(el => {
+            if (el.innerText.includes(data.song)) {
+                el.remove();
+            }
+        });
+
+        return;
+    }
+
+    // DEFAULT CHAT / OTHER MESSAGES
+    const logElement = document.getElementById("messageLog");
+
+    const bubbleListItem = document.createElement("li");
+    bubbleListItem.className = "chat-bubble";
+
+    const shortId = data.id ? data.id.substring(0, 8) : "no-id";
+
+    bubbleListItem.innerHTML = `
+        <div class="bubble-sender">👤 ${data.sender || "Unknown"}</div>
+        <div class="bubble-msg">${data.message || ""}</div>
+        <small class="bubble-id">Ref ID: ${shortId}</small>
+    `;
+
+    logElement.appendChild(bubbleListItem);
+};
+      
+        document.getElementById("playBtn").onclick = () => {
+            console.log("PLAY CLICKED");
+
+            ws.send(JSON.stringify({
+                type: "play"
+            }));
+        };
+        document.getElementById("pauseBtn").onclick = () => {
+            console.log("PAUSE CLICKED");
+
+            ws.send(JSON.stringify({
+                type: "pause"
+            }));
+        };
+        document.getElementById("nextBtn").onclick = () => {
+            console.log("NEXT CLICKED");
+
+            ws.send(JSON.stringify({
+                type: "next"
+            }));
+        };
+  });
+
+
+</script>
+
+</body>
+</html>
